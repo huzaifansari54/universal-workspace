@@ -6,7 +6,7 @@ import { PrismaClient } from '@prisma/client';
 dotenv.config();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27-acacia',
+  apiVersion: '2023-10-16',
 });
 
 const prisma = new PrismaClient();
@@ -33,11 +33,11 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   switch (event.type) {
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
-      const subscription = event.data.object as Stripe.Subscription;
+      const subscription = event.data.object as any;
       await handleSubscriptionChange(subscription);
       break;
     case 'customer.subscription.deleted':
-      const deletedSub = event.data.object as Stripe.Subscription;
+      const deletedSub = event.data.object as any;
       await handleSubscriptionDeleted(deletedSub);
       break;
     default:
@@ -47,7 +47,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   res.json({ received: true });
 });
 
-async function handleSubscriptionChange(subscription: Stripe.Subscription) {
+async function handleSubscriptionChange(subscription: any) {
   const customerId = subscription.customer as string;
   const status = subscription.status;
 
@@ -59,7 +59,7 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
   });
 }
 
-async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+async function handleSubscriptionDeleted(subscription: any) {
   const customerId = subscription.customer as string;
   await prisma.user.update({
     where: { stripe_customer_id: customerId },
