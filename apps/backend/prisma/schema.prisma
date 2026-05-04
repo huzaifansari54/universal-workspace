@@ -1,0 +1,139 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/**
+ * USER MODEL: Stores account information, billing status, and links to actions.
+ */
+model User {
+  id                  String            @id @default(uuid())
+  email               String            @unique
+  auth_tokens         Json?             // Encrypted OAuth credentials for YouTube, Notion, etc.
+  workspace_config    Json?             // User-specific UI preferences
+  subscription_status SubscriptionStatus @default(INACTIVE)
+  stripe_customer_id  String?           @unique
+  plan_id             String?
+  plan                SubscriptionPlan? @relation(fields: [plan_id], references: [id])
+  actions             Action[]          // History of actions triggered by this user
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+}
+
+/**
+ * RESOURCE MODEL: Represents a file or data object (Video, Image, Doc) uploaded to the workspace.
+ */
+model Resource {
+  id             String       @id @default(uuid())
+  name           String       // Filename
+  type           ResourceType // VIDEO, IMAGE, etc.
+  storage_path   String       // Absolute path on the server or Cloud URL
+  metadata       Json?        // File size, resolution, duration, etc.
+  actionsAsInput Action[]     @relation("InputResources")
+  actionsAsOutput Action[]    @relation("OutputResources")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+/**
+ * MODULE MODEL: Represents an external service integrated into the workspace.
+ */
+model Module {
+  id           String       @id @default(uuid())
+  name         String       @unique // e.g., "YouTube Module"
+  status       ModuleStatus @default(INACTIVE)
+  config       Json?        // API keys, Endpoints, or internal settings
+  capabilities Capability[] // Tools provided by this module
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+/**
+ * CAPABILITY MODEL: A specific tool provided by a Module.
+ */
+model Capability {
+  id                String         @id @default(uuid())
+  module_id         String
+  module            Module         @relation(fields: [module_id], references: [id])
+  name              String         // e.g., "Upload to YouTube"
+  input_types       ResourceType[] // Types of resources it can process
+  parameters_schema Json           // JSON Schema defining the UI fields needed
+  actions           Action[]
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@unique([module_id, name]) // A module cannot have two tools with the same name
+}
+
+/**
+ * ACTION MODEL: An execution log for a specific tool usage.
+ */
+model Action {
+  id                  String       @id @default(uuid())
+  capability_id       String
+  capability          Capability   @relation(fields: [capability_id], references: [id])
+  user_id             String
+  user                User         @relation(fields: [user_id], references: [id])
+  status              ActionStatus @default(PENDING)
+  execution_log       Json?        // Output results, error messages, or processing logs
+  input_resources     Resource[]   @relation("InputResources")
+  output_resources    Resource[]   @relation("OutputResources")
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  INACTIVE
+  INCOMPLETE
+}
+
+model SubscriptionPlan {
+  id        String   @id @default(uuid())
+  name      String
+  price_id  String   // Stripe Price ID
+  limits    Json     // e.g., max_actions_per_month, max_storage
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ResourceType {
+  VIDEO
+  IMAGE
+  TEXT
+  DOCUMENT
+}
+
+enum ModuleStatus {
+  ACTIVE
+  INACTIVE
+  PENDING_AUTH
+}
+
+enum ActionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+/**
+ * TEMPLATE MODEL: A sequence of predefined steps (Capabilities) for common workflows.
+ */
+model Template {
+  id        String   @id @default(uuid())
+  name      String
+  steps     Json     // Array<{ moduleId, capabilityId, order }>
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

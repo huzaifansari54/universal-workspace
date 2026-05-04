@@ -1,0 +1,12 @@
+{
+  "name": "universal-action-workspace",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "backend:dev": "npm run dev --workspace=backend",
+    "web:dev": "npm run dev --workspace=web"
+  }
+}
