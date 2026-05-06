@@ -8,20 +8,39 @@ import React, { useState } from 'react';
  * Manage external integrations, OAuth credentials, and local tool settings.
  * Using mock data for frontend testing.
  */
+
+interface Module {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  connected: boolean;
+  icon: string;
+  lastUsed: string;
+}
+
 export default function ModulesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
-
-  const categories = ['All', 'AI', 'Social', 'Storage', 'Utility'];
-
-  const modules = [
+  const [modules, setModules] = useState<Module[]>([
     { id: 'm1', name: 'OpenAI', description: 'Advanced text and image generation models for content automation.', category: 'AI', connected: true, icon: '🤖', lastUsed: '10m ago' },
     { id: 'm2', name: 'Discord', description: 'Real-time communication and webhook distribution for alerts.', category: 'Social', connected: true, icon: '👾', lastUsed: '2h ago' },
     { id: 'm3', name: 'Slack', description: 'Enterprise messaging and team coordination for work flows.', category: 'Social', connected: false, icon: '💬', lastUsed: 'Never' },
     { id: 'm4', name: 'FFmpeg', description: 'Powerful media processing, transcoding and optimization.', category: 'Utility', connected: true, icon: '🗜️', lastUsed: 'Yesterday' },
     { id: 'm5', name: 'AWS S3', description: 'Secure and scalable cloud object storage for assets.', category: 'Storage', connected: false, icon: '☁️', lastUsed: 'Never' },
     { id: 'm6', name: 'Google Drive', description: 'Cloud file storage and synchronization for documents.', category: 'Storage', connected: false, icon: '📂', lastUsed: 'Never' },
-  ];
+  ]);
+
+  const categories = ['All', 'AI', 'Social', 'Storage', 'Utility'];
+
+  const toggleConnection = (id: string) => {
+    setModules(prev => prev.map(m => {
+      if (m.id === id) {
+        return { ...m, connected: !m.connected, lastUsed: !m.connected ? 'Just now' : m.lastUsed };
+      }
+      return m;
+    }));
+  };
 
   const filteredModules = modules.filter(mod => {
     const matchesSearch = mod.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -95,7 +114,8 @@ export default function ModulesPage() {
             flexDirection: 'column',
             gap: '1.25rem',
             position: 'relative',
-            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            opacity: mod.connected ? 1 : 0.8
           }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
               <div style={{ 
@@ -147,29 +167,39 @@ export default function ModulesPage() {
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <button style={{ 
-                flex: 1, 
-                padding: '0.8rem', 
-                borderRadius: '12px', 
-                border: 'none', 
-                background: mod.connected ? 'rgba(255,255,255,0.05)' : 'var(--accent-primary)',
-                color: 'white',
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }} className="glow-hover">
+              <button 
+                onClick={() => !mod.connected && toggleConnection(mod.id)}
+                style={{ 
+                  flex: 1, 
+                  padding: '0.8rem', 
+                  borderRadius: '12px', 
+                  border: 'none', 
+                  background: mod.connected ? 'rgba(255,255,255,0.05)' : 'var(--accent-primary)',
+                  color: 'white',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }} 
+                className="glow-hover"
+              >
                 {mod.connected ? 'Configure' : 'Connect Now'}
               </button>
               {mod.connected && (
-                <button style={{ 
-                  width: '45px', 
-                  borderRadius: '12px', 
-                  border: '1px solid rgba(239, 68, 68, 0.2)', 
-                  background: 'transparent',
-                  color: '#ef4444',
-                  fontSize: '1rem',
-                  cursor: 'pointer'
-                }}>
+                <button 
+                  onClick={() => toggleConnection(mod.id)}
+                  style={{ 
+                    width: '45px', 
+                    borderRadius: '12px', 
+                    border: '1px solid rgba(239, 68, 68, 0.2)', 
+                    background: 'transparent',
+                    color: '#ef4444',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  className="glow-hover"
+                >
                   ✕
                 </button>
               )}
@@ -189,7 +219,8 @@ export default function ModulesPage() {
           gap: '1.25rem',
           textAlign: 'center',
           cursor: 'pointer',
-          background: 'rgba(255,255,255,0.01)'
+          background: 'rgba(255,255,255,0.01)',
+          transition: 'all 0.3s'
         }} className="glow-hover">
           <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', color: '#64748b' }}>+</div>
           <div>

@@ -38,17 +38,36 @@ The layout follows a persistent sidebar pattern to maximize screen real estate o
 The "Templates Hub". Displays a grid of `TemplateCard` components. It serves as the primary dashboard for quick-triggering common workflows.
 
 ### `Workspace` Page (`/workspace`)
-The "Manual Action Builder". This is where users build custom recipes from scratch. (Currently a placeholder).
+The "Manual Action Builder". This page supports dynamic drag-and-drop construction of action sequences using Resources and Modules from the library.
+- **Interactivity**: Drag items onto the canvas, remove nodes, and edit properties in real-time.
+- **Results**: Upon successful execution, a **Results Overlay** appears on the canvas providing direct download links to generated assets.
 
 ### `Activity` Page (`/activity`)
-The "Execution Log". A place to track background jobs and review past action results. (Currently a placeholder).
+The "Execution Log". A central place to track background jobs and review past results.
+- **Interactivity**: Select an activity to view detailed logs and generated assets in the sidebar.
+- **Asset Management**: Users can preview text summaries or download generated files (e.g., PDFs, Videos) directly from the Activity details.
 
 ### `Modules` Page (`/modules`)
-The "Integrations Center". Used for managing OAuth connections and external tool configurations. (Currently a placeholder).
+The "Integrations Center". Used for managing OAuth connections.
+- **Interactivity**: Toggle connection states and configure module-specific settings.
 
 ---
 
-## 4. Component Details
+## 4. Execution & Results Pattern
+The application follows a "Manual-First" execution philosophy.
+
+### 1. Triggering
+Actions are triggered from the `Workspace` or `Templates Hub`. Once started, the system provides visual feedback (spinners/progress bars) across all related nodes.
+
+### 2. Output Locations
+- **Contextual (Workspace)**: Immediate results are shown in a floating glassmorphic overlay on the canvas. This is for high-velocity workflows where the user needs the result instantly.
+- **Permanent (Activity)**: All execution results are persisted in the `Activity` feed. Each entry contains:
+    - **Logs**: Step-by-step audit of the execution.
+    - **Generated Assets**: Files (PDFs, Media) or Text (AI Summaries) produced by the action.
+
+---
+
+## 5. Component Details
 
 ### `TemplateCard` Component
 **Functionality:**
