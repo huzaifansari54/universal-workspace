@@ -5,30 +5,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from './Sidebar.module.css';
 
-/**
- * Navigation Item structure
- */
 interface NavItem {
   label: string;
   href: string;
-  icon?: string; // We'll use emojis or simple strings for now
+  icon?: string;
 }
 
-/**
- * SIDEBAR COMPONENT
- * 
- * This component provides the primary navigation for the Universal Action Workspace.
- * It is designed with a persistent, glassmorphic layout optimized for web screens.
- * 
- * Features:
- * - Route-aware active states using next/navigation
- * - Glassmorphism design pattern via global CSS and local modules
- * - Responsive transitions
- */
-export default function Sidebar() {
+interface SidebarProps {
+  onCreateClick?: () => void;
+}
+
+export default function Sidebar({ onCreateClick }: SidebarProps) {
   const pathname = usePathname();
 
-  // Navigation configuration
   const navItems: NavItem[] = [
     { label: 'Templates', href: '/', icon: '⚡' },
     { label: 'Workspace', href: '/workspace', icon: '🛠️' },
@@ -41,6 +30,14 @@ export default function Sidebar() {
       {/* Branding Section */}
       <div className={styles.logoContainer}>
         <h1 className={styles.logo}>Universal Action</h1>
+      </div>
+
+      {/* Global Quick Actions Trigger */}
+      <div className={styles.quickActionContainer}>
+        <button className={styles.createButton} onClick={onCreateClick}>
+          <span className={styles.createIcon}>+</span>
+          <span className={styles.createText}>Create</span>
+        </button>
       </div>
 
       {/* Primary Navigation */}
